@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0;url=/memcards/v3.html">
+<title>跳转中…</title>
+<style>
+  body{font-family:"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif;background:#fff;color:#222;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+  .box{text-align:center}
+  .big{font-size:20px;font-weight:600;letter-spacing:.04em}
+  .sub{color:#777;font-size:13px;margin-top:8px}
+  a{color:#961a1c}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="big">地址可能有误，正在带你去记忆卡片…</div>
+  <div class="sub">若未自动跳转，<a href="/memcards/v3.html">点击这里</a></div>
+</div>
+<script>
+  // 从错误 URL 中尽力提取正确文件名（如 v3.html** → v3.html）
+  (function(){
+    var m = location.pathname.match(/(v\d+\.html)/);
+    if (m) location.replace('/memcards/' + m[1]);
+    else location.replace('/memcards/v3.html');
+  })();
+</script>
+</body>
+</html>
