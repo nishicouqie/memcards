@@ -231,6 +231,27 @@
   .overlay.editing .ovHint{visibility:hidden}
   .edForm{max-width:920px;margin:0 auto;width:100%;padding:8px 0 24px}
 
+  /* ---------- 复习页：侧栏 + 主区 ---------- */
+  .revLayout{display:grid;grid-template-columns:250px 1fr;gap:26px;align-items:start}
+  @media(max-width:860px){.revLayout{grid-template-columns:1fr}}
+  .revSide{border:1px solid var(--line);padding:14px 16px;position:sticky;top:16px}
+  .sideHead{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;
+            border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px;
+            display:flex;justify-content:space-between;align-items:baseline}
+  .sideHead .note{font-size:10.5px;color:var(--faint);font-family:Consolas,monospace;font-weight:400}
+  .sideOpts{display:flex;flex-direction:column;gap:6px}
+  .sideOpts select{width:100%}
+  .fRow{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);
+        margin-bottom:6px;cursor:pointer;transition:all .12s;background:#fff}
+  .fRow:hover{border-color:var(--ink)}
+  .fRow.active{border-color:var(--ink);background:var(--ink)}
+  .fRow.active .fName,.fRow.active .fNums{color:#fff}
+  .fRow .fName{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+  .fRow .fNums{font-family:Consolas,monospace;font-size:10.5px;color:var(--sub);text-align:right;line-height:1.5}
+  .fRow .fNums b{color:var(--accent);font-size:12px}
+  .fRow.active .fNums b{color:#ffb4b4}
+  .revOps{min-height:52px}
+
   /* ---------- misc ---------- */
   .rulebox{border:1px solid var(--line);background:var(--soft);padding:12px 16px;font-size:12.5px;color:var(--sub)}
   .rulebox .mono{color:var(--ink)}
@@ -287,49 +308,68 @@
 
   <!-- ============ 复习 ============ -->
   <section id="v-review">
-    <div id="revSetup">
-      <h2 class="sec">开始复习 <span class="note" id="dueNote"></span></h2>
-      <div class="row">
-        <label class="f">范围</label>
-        <select id="selRange" style="min-width:160px"></select>
-        <label class="f">顺序</label>
-        <select id="selOrder">
-          <option value="created">按添加顺序</option>
-          <option value="random">随机</option>
-          <option value="progress" selected>按进度（先学过的 / 新加入的）</option>
-        </select>
-        <button class="btn primary" id="btnStart">开始</button>
-      </div>
+    <div class="revLayout">
+      <!-- 侧边栏：文件夹信息 + 出卡设置 -->
+      <aside class="revSide" id="revSide">
+        <div class="sideHead">文件夹 <span class="note">点击切换来源</span></div>
+        <div id="sideFolders"></div>
+        <div class="sideHead mt">出卡设置</div>
+        <div class="sideOpts">
+          <label class="f">排序方式</label>
+          <select id="selOrder">
+            <option value="created">按添加顺序</option>
+            <option value="random">随机</option>
+            <option value="progress" selected>按进度（先学过的 / 新加入的）</option>
+          </select>
+          <label class="f row" style="gap:6px;cursor:pointer">
+            <input type="checkbox" id="chkRandom" style="width:auto"> 忽略上项，完全随机
+          </label>
+          <button class="btn" id="btnApplyQueue" style="margin-top:4px">重新排队并从头开始</button>
+          <span class="hint">改变设置后点击生效，进度不计入本次</span>
+        </div>
+      </aside>
 
-      <h2 class="sec mt">文件夹</h2>
-      <table class="hair" id="folderTable"></table>
-    </div>
+      <!-- 主区：待复习名单 + 卡片 -->
+      <div class="revMain" id="revSession">
+        <div class="revTop">
+          <span class="sideHead" style="border:none;padding:0;margin:0">待复习名单</span>
+          <span class="chip acc" id="revLeft"></span>
+        </div>
+        <div class="progress" style="margin-bottom:14px"><i id="revProg"></i></div>
 
-    <div id="revSession" style="display:none">
-      <div class="revTop">
-        <span class="chip dark" id="revPos"></span>
-        <div class="progress"><i id="revProg"></i></div>
-        <span class="chip" id="revLeft"></span>
-        <button class="btn sm" id="btnEnd">结束本次</button>
-      </div>
-      <div class="card3d">
-        <div class="flip" id="flip">
-          <div class="face front" id="faceFront">
-            <div class="bar-top"><span class="tag" id="cfFolder"></span><span class="tag" id="cfStage"></span></div>
-            <div class="body"><div class="frontText" id="cfText"></div><div class="q-mark">Q</div></div>
-            <div class="bar-bot"><span>点击卡片查看答案</span><span class="mono">SPACE</span></div>
+        <div class="card3d">
+          <div class="flip" id="flip">
+            <div class="face front" id="faceFront">
+              <div class="bar-top"><span class="tag" id="cfFolder"></span><span class="tag" id="cfStage"></span></div>
+              <div class="body"><div class="frontText" id="cfText"></div><div class="q-mark">Q</div></div>
+              <div class="bar-bot"><span>点击卡片查看答案</span><span class="mono">SPACE 翻面</span></div>
+            </div>
+            <div class="face back" id="faceBack">
+              <div class="bar-top"><span class="tag">答案与解析</span><span class="tag" id="cbStage"></span></div>
+              <div class="body"><div class="md" id="cbText"></div></div>
+              <div class="bar-bot"><span>回忆程度？</span><span class="mono">1 遗忘 · 2 模糊 · 3 清楚</span></div>
+            </div>
           </div>
-          <div class="face back" id="faceBack">
-            <div class="bar-top"><span class="tag">答案与解析</span><span class="tag" id="cbStage"></span></div>
-            <div class="body"><div class="md" id="cbText"></div></div>
-            <div class="bar-bot"><span>回忆程度？</span><span class="mono">1 遗忘 · 2 模糊 · 3 清楚</span></div>
+        </div>
+        <div class="revOps">
+          <div class="answers" id="ansBtns" style="visibility:hidden">
+            <button class="ans forget" data-a="forget"><span class="l">遗 忘</span><span class="s">降一级 · 尽快再见</span></button>
+            <button class="ans fuzzy" data-a="fuzzy"><span class="l">模 糊</span><span class="s">保持本级 · 间隔不变</span></button>
+            <button class="ans good" data-a="good"><span class="l">清 楚</span><span class="s">升一级 · 下一间隔</span></button>
+          </div>
+          <div class="row" style="justify-content:center;margin-top:10px">
+            <button class="btn sm" id="btnSkip" style="visibility:hidden">跳过 · 塞回最后</button>
+            <button class="btn sm" id="btnEnd">结束本次</button>
           </div>
         </div>
       </div>
-      <div class="answers" id="ansBtns" style="visibility:hidden">
-        <button class="ans forget" data-a="forget"><span class="l">遗 忘</span><span class="s">降一级 · 尽快再见</span></button>
-        <button class="ans fuzzy" data-a="fuzzy"><span class="l">模 糊</span><span class="s">保持本级 · 间隔不变</span></button>
-        <button class="ans good" data-a="good"><span class="l">清 楚</span><span class="s">升一级 · 下一间隔</span></button>
+
+      <!-- 无卡可复习时的占位 -->
+      <div class="revMain" id="revEmpty" style="display:none">
+        <div class="done">
+          <div class="big">今日没有到期的卡片</div>
+          <div class="sub" id="emptySub">全部完成，或者到「添加」页导入新卡片。</div>
+        </div>
       </div>
     </div>
 
@@ -337,7 +377,7 @@
       <div class="done">
         <div class="big" id="doneTitle">本次复习完成</div>
         <div class="sub" id="doneSub"></div>
-        <button class="btn primary" id="btnBackSetup">返回</button>
+        <button class="btn primary" id="btnBackSetup">返回继续复习</button>
       </div>
     </div>
   </section>
@@ -920,29 +960,65 @@ document.addEventListener('keydown', function(e){
 
 /* ================= 复习 ================= */
 let queue = [], qIdx = 0, flipped = false, sessionLog = null;
+let revRange = 'all';        // 当前出卡来源：'all' 或文件夹 id
 
 function renderReviewSetup(){
-  fillFolderSelect($('selRange'), true);
+  renderSideFolders();
+  buildQueue(true);          // 进入复习页即自动出卡，免点开始
+}
+
+/* 侧边栏：文件夹信息 + 来源选择 */
+function renderSideFolders(){
   const today = todayStr();
-  const dueCards = db.cards.filter(isDue);
-  let html = '<tr><th style="width:26%">文件夹</th><th>卡片总数</th><th>学习中</th><th>已毕业</th><th>今日待复习</th><th style="width:80px"></th></tr>';
+  let html = '<div class="fRow'+(revRange==='all'?' active':'')+'" data-f="all">'+
+    '<span class="fName">全部文件夹</span>'+
+    '<span class="fNums"><b>'+db.cards.filter(isDue).length+'</b> 待背 / '+db.cards.length+' 张</span></div>';
   for(const f of db.folders){
     const cs = db.cards.filter(function(c){ return c.folderId===f.id; });
     const d = cs.filter(isDue).length;
     const g = cs.filter(function(c){ return c.level>=GRADUATE; }).length;
-    html += '<tr><td><b>'+escHtml(f.name)+'</b></td>'+
-      '<td class="num">'+cs.length+'</td><td class="num">'+(cs.length-g)+'</td><td class="num">'+g+'</td>'+
-      '<td class="num'+(d?' duetick':'')+'" style="font-weight:'+(d?700:400)+'">'+d+'</td>'+
-      '<td><button class="btn sm" data-gofolder="'+f.id+'"'+(d?'':' disabled')+'>复习</button></td></tr>';
+    html += '<div class="fRow'+(revRange===f.id?' active':'')+'" data-f="'+f.id+'" title="'+escHtml(f.name)+'">'+
+      '<span class="fName">'+escHtml(f.name)+'</span>'+
+      '<span class="fNums"><b>'+d+'</b> 待背 / '+cs.length+' 张</span></div>';
   }
-  $('folderTable').innerHTML = html || '<tr><td class="empty">还没有文件夹，请到「添加」页新建</td></tr>';
-  $('folderTable').querySelectorAll('[data-gofolder]').forEach(function(b){
-    b.addEventListener('click', function(){ $('selRange').value = b.dataset.gofolder; startReview(); });
+  $('sideFolders').innerHTML = html;
+  $('sideFolders').querySelectorAll('.fRow').forEach(function(el){
+    el.addEventListener('click', function(){
+      if(revRange !== el.dataset.f){
+        revRange = el.dataset.f;
+        renderSideFolders();
+        buildQueue(true);    // 切换来源立即重新出卡
+      }
+    });
   });
-  $('dueNote').textContent = '今日待复习 ' + dueCards.length + ' 张 · ' + today;
-  $('btnStart').disabled = dueCards.length===0;
-  $('btnStart').textContent = dueCards.length ? '开始（'+dueCards.length+' 张）' : '暂无到期卡片';
 }
+
+/* 组队。autoStart=true 时队首卡片直接上屏 */
+function buildQueue(autoStart){
+  const mode = $('chkRandom').checked ? 'random' : $('selOrder').value;
+  queue = sortQueue(db.cards.filter(function(c){ return isDue(c) && (revRange==='all' || c.folderId===revRange); }), mode);
+  qIdx = 0; flipped = false;
+  sessionLog = { good:0, fuzzy:0, forget:0, skip:0, total:queue.length };
+  if(queue.length){
+    $('revSession').style.display = '';
+    $('revEmpty').style.display = 'none';
+    if(autoStart) showCard();
+  }else{
+    $('revSession').style.display = 'none';
+    $('revEmpty').style.display = '';
+    $('emptySub').textContent = revRange==='all'
+      ? '全部完成，或者到「添加」页导入新卡片。'
+      : '「'+folderName(revRange)+'」暂无到期卡片，换个文件夹或等明天。';
+  }
+}
+$('btnApplyQueue').addEventListener('click', function(){
+  buildQueue(true);
+  toast('已按新设置重新排队');
+});
+$('btnBackSetup').addEventListener('click', function(){
+  $('revDone').style.display = 'none';
+  renderReviewSetup();   // 重建队列并直接出卡
+});
 
 function sortQueue(list, mode){
   if(mode==='random'){
@@ -959,35 +1035,20 @@ function sortQueue(list, mode){
   return list.slice().sort(function(a,b){ return a.order-b.order; });
 }
 
-function startReview(){
-  const range = $('selRange').value || 'all';
-  const mode = $('selOrder').value;
-  queue = sortQueue(db.cards.filter(function(c){ return isDue(c) && (range==='all' || c.folderId===range); }), mode);
-  if(!queue.length){ toast('所选范围内没有到期的卡片'); return; }
-  qIdx = 0; sessionLog = { good:0, fuzzy:0, forget:0, total:queue.length };
-  $('revSetup').style.display = 'none';
-  $('revDone').style.display = 'none';
-  $('revSession').style.display = '';
-  showCard();
-}
-$('btnStart').addEventListener('click', startReview);
-$('btnEnd').addEventListener('click', endSession);
-$('btnBackSetup').addEventListener('click', function(){ show('review'); });
-
 function showCard(){
   if(qIdx >= queue.length){ endSession(); return; }
   const c = queue[qIdx];
   flipped = false;
   $('flip').classList.remove('flipped');
   $('ansBtns').style.visibility = 'hidden';
+  $('btnSkip').style.visibility = 'visible';   // 翻面前可跳过
   $('cfFolder').textContent = folderName(c.folderId);
   $('cfStage').textContent = STAGE_NAMES[c.level] + ' · ' + STAGE_INT[c.level];
   $('cbStage').textContent = 'L' + c.level + ' / ' + GRADUATE;
   $('cfText').innerHTML = mdRender(c.front) || '<span class="hint">（正面为空）</span>';
   $('cbText').innerHTML = mdRender(c.back);
-  $('revPos').textContent = (qIdx+1) + ' / ' + queue.length;
-  $('revProg').style.width = (qIdx/queue.length*100) + '%';
-  $('revLeft').textContent = '剩 ' + (queue.length-qIdx) + ' 张';
+  $('revProg').style.width = ((qIdx)/Math.max(queue.length,1)*100) + '%';
+  $('revLeft').textContent = '还剩 ' + (queue.length-qIdx) + ' 张';
   $('faceFront').querySelector('.body').scrollTop = 0;
   $('faceBack').querySelector('.body').scrollTop = 0;
 }
@@ -996,10 +1057,21 @@ $('flip').addEventListener('click', function(){
   flipped = true;
   $('flip').classList.add('flipped');
   $('ansBtns').style.visibility = 'visible';
+  $('btnSkip').style.visibility = 'hidden';    // 翻面后不可跳过
 });
 document.querySelectorAll('.ans').forEach(function(b){
   b.addEventListener('click', function(){ answer(b.dataset.a); });
 });
+/* 跳过：当前卡塞回队尾，不计复习记录 */
+$('btnSkip').addEventListener('click', function(){
+  if(flipped || qIdx >= queue.length) return;
+  const c = queue.splice(qIdx, 1)[0];
+  queue.push(c);
+  sessionLog.skip++;
+  toast('已塞到最后，稍后再问');
+  showCard();
+});
+$('btnEnd').addEventListener('click', endSession);
 document.addEventListener('keydown', function(e){
   if(curView!=='review' || $('revSession').style.display==='none') return;
   if(e.code==='Space'||e.code==='Enter'){
@@ -1040,11 +1112,13 @@ function answer(kind){
 
 function endSession(){
   $('revSession').style.display = 'none';
+  $('revEmpty').style.display = 'none';
   $('revDone').style.display = '';
   const did = qIdx;
   if(sessionLog && did>0){
+    const skipTxt = sessionLog.skip ? ' · 跳过 ' + sessionLog.skip : '';
     $('doneTitle').textContent = '本次复习完成';
-    $('doneSub').textContent = '共复习 ' + did + ' 张：清楚 ' + sessionLog.good + ' · 模糊 ' + sessionLog.fuzzy + ' · 遗忘 ' + sessionLog.forget +
+    $('doneSub').textContent = '共复习 ' + did + ' 张：清楚 ' + sessionLog.good + ' · 模糊 ' + sessionLog.fuzzy + ' · 遗忘 ' + sessionLog.forget + skipTxt +
       '。下一批到期时间取决于各卡片的间隔安排。';
   }else{
     $('doneTitle').textContent = '已结束';
