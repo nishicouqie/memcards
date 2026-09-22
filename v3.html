@@ -10,9 +10,9 @@
     --line:#d8d8d8; --hair:#e4e4e4; --accent:#961a1c; --bg:#fff; --soft:#f6f6f5;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+  html{-webkit-text-size-adjust:100%;overflow-x:clip}
   body{
-    background:var(--bg); color:var(--text); overflow-x:hidden;
+    background:var(--bg); color:var(--text);
     font-family:"Helvetica Neue",Helvetica,Arial,"Segoe UI","Microsoft YaHei",sans-serif;
     font-size:14px; line-height:1.65;
   }
@@ -20,6 +20,9 @@
   .serif{font-family:Georgia,"Times New Roman","Songti SC",SimSun,serif}
   a{color:var(--accent)}
   .wrap{max-width:1400px;width:94%;margin:0 auto;padding:34px 0 90px}
+  /* 页头+导航吸顶 */
+  .stickyHead{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -6px;padding:10px 6px 0;
+              box-shadow:0 8px 12px -10px rgba(0,0,0,.18)}
 
   /* ---------- header ---------- */
   header{border-bottom:2px solid var(--ink);padding-bottom:14px}
@@ -293,18 +296,20 @@
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="kicker">SPACED REPETITION / EBBINGHAUS</div>
-    <h1>记忆卡片</h1>
-    <div class="cap serif">复习间隔 <i>S</i> = { 1, 2, 4, 7, 15 } 天 —— 按艾宾浩斯遗忘曲线安排每一次复习，毕业后的卡片不再出现。</div>
-  </header>
+  <div class="stickyHead">
+    <header>
+      <div class="kicker">SPACED REPETITION / EBBINGHAUS</div>
+      <h1>记忆卡片</h1>
+      <div class="cap serif">复习间隔 <i>S</i> = { 1, 2, 4, 7, 15 } 天 —— 按艾宾浩斯遗忘曲线安排每一次复习，毕业后的卡片不再出现。</div>
+    </header>
 
-  <nav>
-    <button class="tab active" data-v="review">复习<span class="n" id="tabDue"></span></button>
-    <button class="tab" data-v="view">查看<span class="n" id="tabView"></span></button>
-    <button class="tab" data-v="add">添加</button>
-    <button class="tab" data-v="data">数据</button>
-  </nav>
+    <nav>
+      <button class="tab active" data-v="review">复习<span class="n" id="tabDue"></span></button>
+      <button class="tab" data-v="view">查看<span class="n" id="tabView"></span></button>
+      <button class="tab" data-v="add">添加</button>
+      <button class="tab" data-v="data">数据</button>
+    </nav>
+  </div>
 
   <!-- ============ 复习 ============ -->
   <section id="v-review">
@@ -634,6 +639,12 @@ function protectMath(src){
   // $…$ 行内（$ 后不能紧跟空白，避免误伤金额等）
   out = out.replace(/\$(?!\s)((?:[^$\n\\]|\\.)+?)(?<!\s)\$/g, function(m, tex){
     MATH_STORE.push({tex: tex.trim(), display: false});
+    return '@@MATH' + (MATH_STORE.length-1) + '@@';
+  });
+  // 兜底：AI 有时把 \ce{…} 裸写在正文/加粗里（未包 $…$），自动补包行内定界
+  // 此时定界符已被上一轮抽走，剩下的 \ce 均为裸写；匹配到收尾 } 平衡处
+  out = out.replace(/\\(ce|pu|tripledash)(\s*)(\{[^{}]*\})/g, function(m, macro, sp, arg){
+    MATH_STORE.push({tex: '\\' + macro + sp + arg, display: false});
     return '@@MATH' + (MATH_STORE.length-1) + '@@';
   });
   return out;
