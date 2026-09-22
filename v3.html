@@ -138,7 +138,8 @@
 
   /* ---------- markdown content ---------- */
   .md{font-size:14.5px;color:var(--text);word-break:break-word}
-  .md h1,.md h2,.md h3,.md h4{color:var(--ink);margin:14px 0 6px;line-height:1.4}
+  .md .senseBreak{border:none;border-top:1px solid #e0b4b4;margin:12px 38% 12px 0}
+  .md h1.inCard,.md h2.inCard{font-size:1em;border:none;margin:0;padding:0}
   .md h1{font-size:20px;border-bottom:1px solid var(--hair);padding-bottom:4px}
   .md h2{font-size:17px}
   .md h3{font-size:15px}
@@ -389,6 +390,7 @@
     <div class="rulebox">
       批量规则：卡片之间用单独一行 <span class="mono">===</span> 分隔；每张卡片内，正面与反面用单独一行 <span class="mono">---</span> 分隔。
       也支持单行写法：<span class="mono">正面 | 反面</span>（竖线或 Tab 分隔）。内容同样支持 Markdown。
+      每张卡片的<b>第一行</b>可写 <span class="mono">@文件夹名</span> 指定归属（如 <span class="mono">@生物</span>），文件夹不存在会自动创建；不写则导入到下方选择的文件夹。
       <details class="help" style="margin-top:8px;border:none">
         <summary>查看示例</summary>
         <div class="in">
@@ -612,34 +614,63 @@ function restoreMath(html){
 }
 function mdRender(src){
   if(!src) return '<span style="color:#bbb">（空）</span>';
-  if(typeof katex === 'undefined') return marked.parse(String(src).replace(/\r\n?/g,'\n'));
-  const protectedSrc = protectMath(src);
+  // 文言词汇义项分隔：单独一行 // → 分隔线。前后补空行确保 marked 解析为 <hr>
+  const prepped = String(src).replace(/\r\n?/g,'\n')
+    .replace(/^\s*\/\/\s*$/gm, '\n<div class="senseBreak"></div>\n');
+  if(typeof katex === 'undefined') return marked.parse(prepped);
+  const protectedSrc = protectMath(prepped);
   const html = marked.parse(protectedSrc);
   return restoreMath(html);
 }
 
 /* ================= 批量导入解析 ================= */
+/* 每张卡片第一行可写 @文件夹名 指定归属；未写则用界面选择的文件夹 */
 function parseBulk(text){
   const out = [];
   const blocks = String(text).replace(/\r\n?/g,'\n').split(/^\s*===\s*$/m);
   for(const b of blocks){
-    const t = b.replace(/^\n+|\n+$/g,'');
+    let t = b.replace(/^\n+|\n+$/g,'');
     if(!t) continue;
+    // 提取首行 @文件夹 指定
+    let folder = null;
+    const fm = t.match(/^@([^\n@]{1,30})\n?/);
+    if(fm){
+      folder = fm[1].trim();
+      t = t.slice(fm[0].length).replace(/^\n+|\n+$/g,'');
+      if(!t) continue;
+    }
+    let card = null;
     if(t.indexOf('\n') >= 0){
       const parts = t.split(/^\s*---\s*$/m);
       if(parts.length >= 2){
-        out.push({ front: parts[0].replace(/^\n+|\n+$/g,''), back: parts.slice(1).join('\n').replace(/^\n+|\n+$/g,'') });
+        card = { front: parts[0].replace(/^\n+|\n+$/g,''), back: parts.slice(1).join('\n').replace(/^\n+|\n+$/g,'') };
       }else{
         const ls = t.split('\n');
-        out.push({ front: ls[0].trim(), back: ls.slice(1).join('\n').replace(/^\n+|\n+$/g,'') });
+        card = { front: ls[0].trim(), back: ls.slice(1).join('\n').replace(/^\n+|\n+$/g,'') };
       }
     }else{
       const seg = t.split(/\t|｜|\|/);
-      if(seg.length >= 2) out.push({ front: seg[0].trim(), back: seg.slice(1).join(' ').trim() });
-      else out.push({ front: t.trim(), back: '' });
+      if(seg.length >= 2) card = { front: seg[0].trim(), back: seg.slice(1).join(' ').trim() };
+      else card = { front: t.trim(), back: '' };
+    }
+    if(card && card.front){
+      if(folder !== null) card.folder = folder;
+      out.push(card);
     }
   }
   return out.filter(function(c){ return c.front; });
+}
+/* 按名称找文件夹，不存在则自动创建，失败返回默认 */
+function folderIdByName(name){
+  if(!name) return null;
+  const n = name.trim();
+  if(!n) return null;
+  let f = db.folders.find(function(f){ return f.name===n; });
+  if(!f){
+    f = { id: uid(), name: n, created: Date.now() };
+    db.folders.push(f);
+  }
+  return f.id;
 }
 
 /* ================= UI 基础 ================= */
@@ -1100,10 +1131,25 @@ $('btnBulk').addEventListener('click', function(){
   const cards = parseBulk(text);
   if(!cards.length){ toast('没有解析出有效卡片，请检查格式'); return; }
   const fid = $('bulkFolder').value;
-  cards.forEach(function(c){ addCard(fid, c.front, c.back); });
+  // 统计卡片内 @文件夹 指定的情况（含自动新建的文件夹）
+  const byName = {};
+  cards.forEach(function(c){ if(c.folder) byName[c.folder] = (byName[c.folder]||0)+1; });
+  const created = [];
+  cards.forEach(function(c){
+    let target = fid;
+    if(c.folder){
+      const id = folderIdByName(c.folder);
+      if(id !== fid && !created.includes(c.folder)) created.push(c.folder);
+      target = id;
+    }
+    addCard(target, c.front, c.back);
+  });
   save();
   $('bulkText').value='';
-  $('bulkReport').textContent = '本次成功导入 '+cards.length+' 张到「'+folderName(fid)+'」，当前共 '+db.cards.length+' 张';
+  const parts = ['共 '+cards.length+' 张'];
+  if(created.length) parts.push('自动新建文件夹：'+created.map(escHtml).join('、'));
+  parts.push('当前共 '+db.cards.length+' 张');
+  $('bulkReport').textContent = '导入成功：' + parts.join(' · ');
   toast('导入成功：'+cards.length+' 张');
   renderAdd(); renderTabBadges();
 });
