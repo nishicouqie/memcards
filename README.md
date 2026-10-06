@@ -6,7 +6,7 @@
 
 ## 在线使用
 
-**→ [https://nishicouqie.github.io/memcards/v3.html](https://nishicouqie.github.io/memcards/v3.html)**
+**→ [https://nishicouqie.github.io/memcards/v4.html](https://nishicouqie.github.io/memcards/v4.html)**
 
 推荐收藏此链接。也可以把 HTML 文件下载到本地，双击直接打开使用（完全离线）。
 
@@ -91,7 +91,8 @@
 
 | 版本 | 链接 | 说明 |
 |---|---|---|
-| v3（当前） | [v3.html](https://nishicouqie.github.io/memcards/v3.html) | 查看/卡库合并、编辑模式、拖拽分组、md+latex 预览 |
+| v4（当前） | [v4.html](https://nishicouqie.github.io/memcards/v4.html) | 拼贴 zine 视觉重置（镜像标题/条码/硬阴影）；修复侧栏计数不刷新 |
+| v3 | [v3.html](https://nishicouqie.github.io/memcards/v3.html) | 查看/卡库合并、编辑模式、拖拽分组、md+latex 预览 |
 | v2 | [v2.html](https://nishicouqie.github.io/memcards/v2.html) | 新增查看页、加宽布局 |
 | v1 | [index.html](https://nishicouqie.github.io/memcards/) | 初版：复习/添加/卡库/数据 |
 
