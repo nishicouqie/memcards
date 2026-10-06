@@ -41,43 +41,41 @@ details.help,.fldChip,.chip,.ans,.btn,.toast,.revSide,.progress,.reward i{border
 
 .wrap{max-width:1280px;width:92%;margin:0 auto;padding:0 0 110px;position:relative;z-index:1}
 
-/* ---------- HERO：大字标 + 技术读数 ---------- */
-.hero{position:relative;padding:52px 0 34px;text-align:center}
+/* ---------- HERO：紧凑页眉带 ---------- */
+.hero{position:relative;padding:16px 0 10px;text-align:left}
 .heroDeco{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .heroDeco>*{position:absolute}
-.ring{border:1px solid rgba(43,58,214,.15);border-radius:50%!important}
-.ring.r1{width:340px;height:340px;left:10%;top:36%}
-.ring.r2{width:560px;height:560px;left:4%;top:22%}
-.ring.r3{width:820px;height:820px;left:-6%;top:6%}
-.ht{width:96px;height:42px;background-image:radial-gradient(circle at 2px 2px, var(--blue) 1.2px, transparent 1.45px);background-size:7px 7px;opacity:.6}
-.ht.htB{left:21%;top:52px}
-.ht.htG{right:20%;bottom:56px;background-image:radial-gradient(circle at 2px 2px, var(--ink) 1.2px, transparent 1.45px);opacity:.35}
+.ring{border:1px solid rgba(43,58,214,.14);border-radius:50%!important}
+.ring.r1{width:210px;height:210px;right:24%;top:-70px}
+.ring.r2{width:340px;height:340px;right:6%;top:-140px}
+.ht{width:72px;height:26px;background-image:radial-gradient(circle at 2px 2px, var(--blue) 1.2px, transparent 1.45px);background-size:6px 6px;opacity:.55}
+.ht.htB{right:15%;top:12px}
+.ht.htG{left:23%;bottom:4px;background-image:radial-gradient(circle at 2px 2px, var(--ink) 1.2px, transparent 1.45px);opacity:.32}
 .sc{width:3px;height:3px;background:var(--blue);opacity:.6}
 .sc.k{background:var(--ink)}
 .sc.r{background:var(--hot)}
-.ro{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.ro{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
 .ro.blue{color:var(--blue)}
-.ro.tl{left:0;top:0}.ro.tr{right:0;top:0}.ro.bl{left:0;top:26px}.ro.br{right:0;top:26px}
-.legend{left:0;bottom:0;display:flex;gap:18px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--muted)}
+.ro.tl{left:0;top:0}.ro.tr{right:0;top:0}
+.heroRow{display:flex;align-items:center;gap:26px;flex-wrap:wrap;position:relative}
+.titleBlock{display:inline-block;line-height:1}
+.disp{font-family:var(--disp);font-weight:700;font-size:46px;line-height:1;letter-spacing:.01em;margin:0;user-select:none;white-space:nowrap}
+.disp .solid{color:var(--ink)}
+.disp .out{color:transparent;-webkit-text-stroke:1.4px var(--blue)}
+.ghost{transform:rotate(180deg);color:transparent;-webkit-text-stroke:1px rgba(43,58,214,.34);
+       font-family:var(--disp);font-weight:700;font-size:46px;line-height:.92;letter-spacing:.01em;
+       margin-top:-4px;user-select:none;pointer-events:none;white-space:nowrap}
+.heroTitleCn{display:flex;flex-direction:column;gap:3px}
+.cnSub{font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:.42em;white-space:nowrap}
+.cnSub b{color:var(--blue)}
+.heroCap{font-family:var(--mono);font-size:8.5px;letter-spacing:.26em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--muted);position:static;margin-left:auto}
 .legend b{font-weight:400}
 .legend .lgB b{color:var(--blue)} .legend .lgK b{color:var(--ink)} .legend .lgR b{color:var(--hot)}
-.monoFoot{right:0;bottom:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint)}
-
-.disp{font-family:var(--disp);font-weight:700;font-size:clamp(58px,9.5vw,118px);line-height:.95;
-      letter-spacing:.01em;margin:8px 0 0;user-select:none}
-.disp .solid{color:var(--ink)}
-.disp .out{color:transparent;-webkit-text-stroke:2.5px var(--blue)}
-.ghost{transform:rotate(180deg);color:transparent;-webkit-text-stroke:1px rgba(43,58,214,.3);
-       font-family:var(--disp);font-weight:700;font-size:clamp(58px,9.5vw,118px);line-height:.9;
-       letter-spacing:.01em;margin-top:-6px;user-select:none;pointer-events:none;white-space:nowrap;overflow:hidden}
-.cnSub{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.75em;text-indent:.75em;margin-top:10px}
-.cnSub b{color:var(--blue)}
-.heroCap{font-family:var(--mono);font-size:10px;letter-spacing:.34em;color:var(--muted);text-transform:uppercase;margin-top:8px}
-@media(max-width:760px){
-  .ro.bl,.ro.br,.legend,.monoFoot{display:none}
-  .disp,.ghost{font-size:15vw}
-  .ht{width:64px;height:30px}
-}
+.heroSub{display:flex;justify-content:space-between;align-items:center;margin-top:10px;position:relative;gap:10px}
+.scRow{display:flex;align-items:center}
+.monoFoot{position:static;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--faint)}
+@media(max-width:760px){.heroCap,.legend .lgK,.legend .lgR{display:none}}
 
 /* ---------- 吸顶导航条 ---------- */
 .navStrip{position:sticky;top:0;z-index:40;background:rgba(240,240,235,.94);backdrop-filter:blur(8px);
@@ -406,31 +404,34 @@ details.help .in pre{font-family:var(--mono);font-size:12px;background:var(--pap
 
   <div class="hero">
     <div class="heroDeco">
-      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <div class="ring r1"></div><div class="ring r2"></div>
       <div class="ht htB"></div><div class="ht htG"></div>
-      <i class="sc" style="left:30%;top:58%"></i>
-      <i class="sc k" style="left:36%;top:66%"></i>
-      <i class="sc" style="left:64%;top:52%"></i>
-      <i class="sc r" style="left:70%;top:64%"></i>
-      <i class="sc" style="left:55%;top:72%"></i>
-      <i class="sc k" style="left:46%;top:60%"></i>
-      <i class="sc" style="left:76%;top:70%"></i>
-      <i class="sc r" style="left:40%;top:70%"></i>
+      <i class="sc" style="left:30%;top:72%"></i>
+      <i class="sc k" style="left:38%;top:82%"></i>
+      <i class="sc" style="left:64%;top:70%"></i>
+      <i class="sc r" style="left:71%;top:80%"></i>
       <div class="ro tl">MEMORY · ZINE 05 · V5</div>
-      <div class="ro bl">SOURCE : LOCALSTORAGE / SEGMENTS 24</div>
       <div class="ro tr blue">VIEW : X-Y PLANE</div>
-      <div class="ro br">AXIS : S={1,2,4,7,15} · L0 → L5</div>
+    </div>
+    <div class="heroRow">
+      <div class="titleBlock">
+        <h1 class="disp"><span class="solid">MEM</span><span class="out">ORY.</span></h1>
+        <div class="ghost" aria-hidden="true">MEMORY.</div>
+      </div>
+      <div class="heroTitleCn">
+        <div class="cnSub">记 忆 卡 片 · 艾 宾 浩 斯 复 习 轴 <b>壹</b></div>
+        <div class="heroCap">NURTURING MEMORY — SPACED REPETITION ATLAS OF L0 → L5</div>
+      </div>
       <div class="legend">
         <span class="lgB"><b>●</b> 待背</span>
         <span class="lgK"><b>●</b> 学习中</span>
         <span class="lgR"><b>●</b> CRITICAL</span>
       </div>
+    </div>
+    <div class="heroSub">
+      <div class="scRow"><i class="sc" style="position:static;display:inline-block;margin-right:5px"></i><i class="sc k" style="position:static;display:inline-block;margin-right:5px"></i><i class="sc r" style="position:static;display:inline-block;margin-right:14px"></i><i class="sc" style="position:static;display:inline-block;margin-right:5px"></i><i class="sc k" style="position:static;display:inline-block"></i></div>
       <div class="monoFoot">CLICK CARD = INSPECT · ESC = BACK</div>
     </div>
-    <h1 class="disp"><span class="solid">MEM</span><span class="out">ORY.</span></h1>
-    <div class="ghost" aria-hidden="true">MEMORY.</div>
-    <div class="cnSub">记 忆 卡 片 · 艾 宾 浩 斯 复 习 轴 <b>壹</b></div>
-    <div class="heroCap">NURTURING MEMORY — SPACED REPETITION ATLAS OF L0 → L5</div>
   </div>
 
   <div class="navStrip">
