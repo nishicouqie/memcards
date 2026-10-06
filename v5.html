@@ -206,10 +206,15 @@ table.hair tr:hover td{background:rgba(43,58,214,.04)}
         position:absolute;right:32px;bottom:46px;user-select:none}
 .frontText{font-size:21px;color:var(--ink);font-weight:650;max-width:82%;line-height:1.65}
 
-/* 评分飞出 + 入场（WAAPI，无残留类） */
-.flip.out-good{transform:translateX(80px) rotate(3deg) scale(.93);opacity:0;transition:all .4s cubic-bezier(.5,0,.8,.4)}
-.flip.out-forget{transform:translateX(-80px) rotate(-3deg) scale(.93);opacity:0;transition:all .4s cubic-bezier(.5,0,.8,.4)}
-.flip.out-fuzzy{transform:scale(.955);opacity:0;transition:all .32s ease}
+/* 评分退场：本体快速淡出，由溶解格子接管视觉 */
+.flip.out-good{opacity:0;transform:scale(.985);transition:all .26s ease}
+.flip.out-forget{opacity:0;transform:translateY(40px) rotate(-1.5deg);transition:all .34s ease-in}
+.flip.out-fuzzy{opacity:0;filter:blur(6px);transform:scale(.975);transition:all .3s ease}
+
+/* 评分溶解动画：卡片碎成小方格散开 */
+.dissolve{position:fixed;z-index:55;pointer-events:none}
+.dissolve i{position:absolute;background:var(--paper);animation:cellOut .8s cubic-bezier(.3,.4,.4,1) forwards}
+@keyframes cellOut{from{opacity:1;transform:translate(0,0) rotate(0deg)}70%{opacity:.85}to{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rt))}}
 
 /* 粒子激励 */
 .reward{position:fixed;z-index:60;pointer-events:none}
@@ -940,14 +945,16 @@ function renderViewGrid(){
       '</div>'+
       (folded ? '<div class="foldBar">FOLDED — '+cs.length+' CARDS IN SEGMENT · 点击段名展开</div>'
               : '<div class="viewGrid">');
-    for(const c of cs){
-      html += '<div class="vcard'+(editMode?' editable':'')+'" data-id="'+c.id+'" draggable="'+(editMode?'true':'false')+'">'+
-        '<span class="vTag">'+(c.level>=GRADUATE?'GRAD':'L'+c.level)+'</span>'+
-        '<div class="vText">'+(vFrontHtml(c.front) || '<span style="color:#bbb">（正面为空）</span>')+'</div>'+
-        '<div class="vFoot">'+dueLabel(c.due)+' · '+((c.reviews||0))+' reviews</div>'+
-      '</div>';
+    if(!folded){
+      for(const c of cs){
+        html += '<div class="vcard'+(editMode?' editable':'')+'" data-id="'+c.id+'" draggable="'+(editMode?'true':'false')+'">'+
+          '<span class="vTag">'+(c.level>=GRADUATE?'GRAD':'L'+c.level)+'</span>'+
+          '<div class="vText">'+(vFrontHtml(c.front) || '<span style="color:#bbb">（正面为空）</span>')+'</div>'+
+          '<div class="vFoot">'+dueLabel(c.due)+' · '+((c.reviews||0))+' reviews</div>'+
+        '</div>';
+      }
+      html += '</div>';
     }
-    if(!folded) html += '</div>';
     html += '</div>';
   }
   $('viewGroups').innerHTML = html;
@@ -1279,11 +1286,70 @@ function answer(kind){
   // 视觉激励：卡片按评分飞出 + 粒子爆发，随后新卡滑入
   const flipEl = $('flip');
   flipEl.classList.add('out-' + kind);
-  spawnReward(kind);
+  dissolveCard(kind);
+  if(kind === 'good'){
+    const rect = $('flip').getBoundingClientRect();
+    const ring = document.createElement('span');
+    ring.className = 'ringP';
+    ring.style.left = (rect.left + rect.width/2) + 'px';
+    ring.style.top = (rect.top + rect.height/2) + 'px';
+    ring.style.position = 'fixed';
+    document.body.appendChild(ring);
+    setTimeout(function(){ ring.remove(); }, 700);
+  }
   setTimeout(function(){
     qIdx++;
     showCard();
-  }, 430);
+  }, 460);
+}
+
+/* 卡片像素溶解：碎成小方格，按评分各自散开 */
+function dissolveCard(kind){
+  const rect = $('flip').getBoundingClientRect();
+  if(rect.width < 40) return;
+  const host = document.createElement('div');
+  host.className = 'dissolve';
+  host.style.left = rect.left + 'px';
+  host.style.top = rect.top + 'px';
+  host.style.width = rect.width + 'px';
+  host.style.height = rect.height + 'px';
+  const cols = Math.max(12, Math.min(26, Math.round(rect.width / 46)));
+  const rows = Math.max(7, Math.min(14, Math.round(rect.height / 46)));
+  const cw = rect.width / cols, ch = rect.height / rows;
+  for(let r = 0; r < rows; r++){
+    for(let c = 0; c < cols; c++){
+      const cell = document.createElement('i');
+      cell.style.left = (c * cw) + 'px';
+      cell.style.top = (r * ch) + 'px';
+      cell.style.width = (cw + 0.5) + 'px';
+      cell.style.height = (ch + 0.5) + 'px';
+      const roll = Math.random();
+      if(kind === 'good'){
+        // 清楚：纸白格子混蓝墨/墨黑，向上飘散
+        cell.style.background = roll > .93 ? '#2b3ad6' : roll > .86 ? '#191921' : '#f8f8f4';
+        cell.style.boxShadow = 'inset 0 0 0 1px rgba(25,25,33,.22)';
+        cell.style.setProperty('--dx', (Math.random()*170-85) + 'px');
+        cell.style.setProperty('--dy', (-Math.random()*150-30) + 'px');
+      }else if(kind === 'forget'){
+        // 遗忘：灰阶格子向下坠落
+        cell.style.background = roll > .8 ? '#c9c9c0' : '#e2e2da';
+        cell.style.boxShadow = 'inset 0 0 0 1px rgba(25,25,33,.15)';
+        cell.style.setProperty('--dx', (Math.random()*90-45) + 'px');
+        cell.style.setProperty('--dy', (Math.random()*260+140) + 'px');
+      }else{
+        // 模糊：轻微晃动下坠，带模糊
+        cell.style.background = roll > .85 ? '#dfe2f5' : '#e9e9e2';
+        cell.style.filter = 'blur(' + (1 + Math.random()*2.5) + 'px)';
+        cell.style.setProperty('--dx', (Math.random()*36-18) + 'px');
+        cell.style.setProperty('--dy', (Math.random()*70-10) + 'px');
+      }
+      cell.style.setProperty('--rt', (Math.random()*150-75) + 'deg');
+      cell.style.animationDelay = (Math.random()*0.16) + 's';
+      host.appendChild(cell);
+    }
+  }
+  document.body.appendChild(host);
+  setTimeout(function(){ host.remove(); }, 1150);
 }
 
 /* 评分粒子激励 */
